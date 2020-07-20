@@ -1,4 +1,4 @@
-const { ether } = require("@openzeppelin/test-helpers")
+const { ether, BN } = require("@openzeppelin/test-helpers")
 
 let config = {}
 
@@ -6,61 +6,77 @@ config.LidToken = {
   name:"Lidbar Network",
   symbol:"LID",
   decimals:18,
-  taxBP:100
+  taxBP:190,
+  daoTaxBP:10
 }
 
 config.LidStaking = {
-  stakingTaxBP: 100,
-  unstakingTaxBP: 100,
+  stakingTaxBP: 0,
+  unstakingTaxBP: 200,
   startTime: 1593918000
 }
 
 config.LidPresale = {
-  buybackBP: 1500,
-  devfundBP: 1000,
-  maxBuyPerAddress: ether("5"),
-  maximumPresaleEther: ether("200"),
-  requiresWhitelisting: true,
-  totalPresaleTokens: ether("40000000"),
-  totalUniswapTokens: ether("24000000")
+  maxBuyPerAddressBase: ether("10"),
+  maxBuyPerAddressBP: 200,
+  maxBuyWithoutWhitelisting: ether("1"),
+  redeemBP: 200,
+  redeemInterval: 3600,
+  referralBP: 250,
+  startingPrice: ether("0.00002"),
+  multiplierPrice: new BN("600000"),
+  etherPools: {
+    promoFund: 500,
+    teamFund: 2000
+  },
+  tokenPools: {
+    promoFund: 500,
+    stakingFund: 900,
+    teamFund: 1000,
+    daoFund: 2000
+  }
 }
 
-config.LidStakingRewardPool = {
-  releaseBP: 1000,
-  releaseInterval: 86400*30,
-  cycleStart: 1594387800,
-  size: ether("26000000")
-}
-
-config.LidPromoFund = {
-  size: ether("10000000"),
-  authorizor: "0xF142e06408972508619ee93C2b8bff15ef7c2cb3",
-  releaser: "0xd04371F7b83a317Ff92DF60915Ca1C7037a01a4c"
+config.LidPresaleTimer = {
+  startTime: 1595383200,
+  baseTimer: 48*3600, //48 hours
+  deltaTimer: 8*3600, //8 hours
 }
 
 config.LidTeamLock = {
-  releaseAmount:ether("2500000"),
-  releaseInterval:86400*30,
-  releaseStart:1593955800,
-  teamMembers:[
-    "0xd04371F7b83a317Ff92DF60915Ca1C7037a01a4c",
-    "0x4771a883088CD7BEae45f7d84CFbFDCF18f726c5",
-    "0xFD9fc91e1Bc8fBBa21ef3EbFd07EAB1247aF8B41",
-    "0xF142e06408972508619ee93C2b8bff15ef7c2cb3"
+  releaseInterval: 86400,
+  releaseBP:33,
+  addresses:[
+    "0x4735581201F4cAD63CCa0716AB4ac7D6d9CFB0ed",
+    "0x0ec2ECD66Ea154F9F99624da860BDAf1D594129A",
+    "0xEc40bcD40D618B56359378eaA3203B59B233c013",
+    "0x1c38759F74d253791c9Cdb32425e3793894F8231",
+    "0xf1B48f1aA5Cc76A326B95f78dE09f0Ef8DFD85C1",
+    "0x0612dEE3CfEa2466710A2E36833f85113F6F2BeC"
   ],
-  size: ether("10000000")
+  basisPoints:[
+    3500,
+    2500,
+    1500,
+    1500,
+    500,
+    500
+  ]
 }
 
-config.LidDevFund = {
-  releaseAmount:ether("2500000"),
-  releaseInterval:86400*30,
-  releaseStart:1593955800,
-  size: ether("30000000"),
-  authorizor: "0xF142e06408972508619ee93C2b8bff15ef7c2cb3",
-  releaser: "0xd04371F7b83a317Ff92DF60915Ca1C7037a01a4c"
+config.LidDaoLock = {
+  releaseInterval: 86400,
+  releaseBP:16
 }
 
-config.Launch = {
-  startTime: 1593696600
+config.LidPromoFund = {
+  authorizor: "0x4735581201F4cAD63CCa0716AB4ac7D6d9CFB0ed",
+  releaser: "0xEc40bcD40D618B56359378eaA3203B59B233c013"
 }
+
+config.LidStakingFund = {
+  authorizor: "0x4735581201F4cAD63CCa0716AB4ac7D6d9CFB0ed",
+  releaser: "0xEc40bcD40D618B56359378eaA3203B59B233c013"
+}
+
 module.exports = config

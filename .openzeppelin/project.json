@@ -1,6 +1,15 @@
 {
   "manifestVersion": "2.2",
-  "contracts": {},
+  "contracts": {
+    "LidToken": "LidToken",
+    "LidTeamLock": "LidTeamLock",
+    "LidStakingFund": "LidStakingFund",
+    "LidStaking": "LidStaking",
+    "LidPromoFund": "LidPromoFund",
+    "LidDaoLock": "LidDaoLock",
+    "LidCertifiedPresaleTimer": "LidCertifiedPresaleTimer",
+    "LidCertifiedPresale": "LidCertifiedPresale"
+  },
   "dependencies": {},
   "name": "lid-contracts",
   "version": "1.0.0"

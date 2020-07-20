@@ -5,6 +5,8 @@ const config = require("../config")
 
 const LidToken = contract.fromArtifact("LidToken")
 const LidStaking = contract.fromArtifact("LidStaking")
+const LidCertifiedPresale = contract.fromArtifact("LidCertifiedPresale")
+const LidDaoFund = contract.fromArtifact("LidDaoLock")
 
 
 const owner = accounts[0]
@@ -20,6 +22,8 @@ describe("LidToken", function() {
 
     this.lidToken = await LidToken.new()
     this.lidStaking = await LidStaking.new()
+    this.lidCertifiedPresale = await LidCertifiedPresale.new()
+    this.lidDaoFund = await LidDaoFund.new()
 
     await this.lidToken.initialize(
       tokenParams.name,
@@ -27,7 +31,10 @@ describe("LidToken", function() {
       tokenParams.decimals,
       owner,
       tokenParams.taxBP,
-      this.lidStaking.address
+      tokenParams.daoTaxBP,
+      this.lidDaoFund.address,
+      this.lidStaking.address,
+      this.lidCertifiedPresale.address
     )
     await this.lidStaking.initialize(
       stakingParams.stakingTaxBP,
@@ -36,7 +43,7 @@ describe("LidToken", function() {
       this.lidToken.address
     )
 
-    await this.lidStaking.setStartTime(new BN(1),{from:owner})
+    await this.lidStaking.setStartTime(new BN("1"),{from:owner})
 
     await Promise.all([
       await this.lidToken.mint(transferFromAccounts[0],ether('10'),{from: owner}),
@@ -58,16 +65,52 @@ describe("LidToken", function() {
     })
     describe("#findTaxAmount", function(){
       it("Should return taxBP/10000 of value passed.", async function() {
-        let tax = await this.lidToken.findTaxAmount(ether("1"))
-        let expectedTax = ether("1").mul(new BN(config.LidToken.taxBP)).div(new BN(10000))
-        expect(tax.toString()).to.equal(expectedTax.toString())
+        let {tax, daoTax} = await this.lidToken.findTaxAmount(ether("1"))
+        let expectedTax = ether("1")
+          .mul((new BN(config.LidToken.taxBP)).add(new BN(config.LidToken.daoTaxBP)))
+          .div(new BN(10000))
+        expect((tax.add(daoTax)).toString()).to.equal(expectedTax.toString())
       })
     })
   })
 
+  describe("State: isTransfersActive=false", function (){
+    describe("#isTransfersActive", function(){
+      it("Should be false.", async function() {
+        let isTransfersActive = await this.lidToken.isTransfersActive()
+        expect(isTransfersActive).to.equal(false)
+      })
+    })
+    describe("#transfer", function(){
+      it("Should revert.", async function() {
+        await expectRevert(
+          this.lidToken.transfer(transferToAccounts[0],ether("10").add(new BN(1)),{from:transferFromAccounts[0]}),
+          "Transfers are currently locked."
+        )
+      })
+    })
+    describe("#transferFrom", function(){
+      it("All transferFrom should revert.", async function() {
+        const receiver = transferToAccounts[1]
+        const sender = transferFromAccounts[1]
+        await expectRevert(
+          this.lidToken.transferFrom(sender,receiver,ether("5").add(new BN(1)),{from:approvedSender}),
+          "Transfers are currently locked."
+        )
+      })
+    })
+  })
 
-
-  describe("State: isTaxActive=false", function(){
+  describe("State: isTaxActive=false, isTransfersActive=true", function(){
+    before(async function() {
+      await this.lidToken.setIsTransfersActive(true,{from:owner})
+    })
+    describe("#isTransfersActive", function(){
+      it("Should be true.", async function() {
+        let isTransfersActive = await this.lidToken.isTransfersActive()
+        expect(isTransfersActive).to.equal(true)
+      })
+    })
     describe("#isTaxActive", function(){
       it("Should be false.", async function() {
         let isTaxActive = await this.lidToken.isTaxActive()
@@ -149,13 +192,13 @@ describe("LidToken", function() {
         )
       })
       it("Should increase receiver by value minus tax.", async function() {
-        let tax = await this.lidToken.findTaxAmount(ether("1"))
+        const {tax, daoTax} = await this.lidToken.findTaxAmount(ether("1"))
         const receiver = transferToAccounts[0]
         const sender = transferFromAccounts[0]
         const receiverInitialBalance = await this.lidToken.balanceOf(receiver)
         await this.lidToken.transfer(receiver,ether("1"),{from:sender})
         const receiverFinalBalance = await this.lidToken.balanceOf(receiver)
-        expect(receiverFinalBalance.toString()).to.equal(receiverInitialBalance.add(ether("1")).sub(tax).toString())
+        expect(receiverFinalBalance.toString()).to.equal(receiverInitialBalance.add(ether("1")).sub(tax).sub(daoTax).toString())
       })
       it("Should decrease sender by value", async function() {
         const receiver = transferToAccounts[0]
@@ -170,7 +213,7 @@ describe("LidToken", function() {
         const sender = transferFromAccounts[0]
         const stakingInitialBalance = await this.lidToken.balanceOf(this.lidStaking.address);
         await this.lidToken.transfer(receiver,ether("1"),{from:sender})
-        const tax = await this.lidToken.findTaxAmount(ether("1"));
+        const {tax, daoTax} = await this.lidToken.findTaxAmount(ether("1"));
         const stakingFinalBalance = await this.lidToken.balanceOf(this.lidStaking.address);
         expect(stakingFinalBalance.toString()).to.equal(stakingInitialBalance.add(tax).toString())
       })
@@ -188,13 +231,13 @@ describe("LidToken", function() {
         )
       })
       it("Should increase receiver by value minus tax", async function() {
-        let tax = await this.lidToken.findTaxAmount(ether("1"))
+        const {tax, daoTax} = await this.lidToken.findTaxAmount(ether("1"))
         const receiver = transferToAccounts[1]
         const sender = transferFromAccounts[1]
         const receiverInitialBalance = await this.lidToken.balanceOf(receiver)
         await this.lidToken.transferFrom(sender,receiver,ether("1"),{from:approvedSender})
         const receiverFinalBalance = await this.lidToken.balanceOf(receiver)
-        expect(receiverFinalBalance.toString()).to.equal(receiverInitialBalance.add(ether("1")).sub(tax).toString())
+        expect(receiverFinalBalance.toString()).to.equal(receiverInitialBalance.add(ether("1")).sub(tax).sub(daoTax).toString())
       })
       it("Should decrease sender by value", async function() {
         const receiver = transferToAccounts[1]
@@ -209,7 +252,7 @@ describe("LidToken", function() {
         const sender = transferFromAccounts[1]
         const stakingInitialBalance = await this.lidToken.balanceOf(this.lidStaking.address);
         await this.lidToken.transferFrom(sender,receiver,ether("1"),{from:approvedSender})
-        const tax = await this.lidToken.findTaxAmount(ether("1"));
+        const {tax, daoTax} = await this.lidToken.findTaxAmount(ether("1"));
         const stakingFinalBalance = await this.lidToken.balanceOf(this.lidStaking.address);
         expect(stakingFinalBalance.toString()).to.equal(stakingInitialBalance.add(tax).toString())
       })

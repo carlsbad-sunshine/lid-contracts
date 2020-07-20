@@ -2,10 +2,10 @@ pragma solidity 0.5.16;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/ownership/Ownable.sol";
-import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/upgrades/contracts/Initializable.sol";
 import "./library/BasisPoints.sol";
 import "./interfaces/IStakeHandler.sol";
+import "./interfaces/ILidCertifiableToken.sol";
 
 
 contract LidStaking is Initializable, Ownable {
@@ -16,7 +16,7 @@ contract LidStaking is Initializable, Ownable {
 
     uint public stakingTaxBP;
     uint public unstakingTaxBP;
-    IERC20 private lidToken;
+    ILidCertifiableToken private lidToken;
 
     mapping(address => uint) public stakeValue;
     mapping(address => int) private stakerPayouts;
@@ -50,7 +50,7 @@ contract LidStaking is Initializable, Ownable {
         uint _stakingTaxBP,
         uint _ustakingTaxBP,
         address owner,
-        IERC20 _lidToken
+        ILidCertifiableToken _lidToken
     ) public initializer {
         Ownable.initialize(msg.sender);
         stakingTaxBP = _stakingTaxBP;
