@@ -613,11 +613,11 @@
       }
     },
     "LidCertifiedPresale": {
-      "address": "0x334dCC1C3bc1EbeaaA09079e6Fd647900881D4Cf",
-      "constructorCode": "60806040526130c8806100136000396000f3fe",
-      "bodyBytecodeHash": "11a1a7a9565983926e3189357a46693ebde9c7f1db00f3850d548aa0b2e0330f",
-      "localBytecodeHash": "4377524d3808d3871e7966173268458d27ebc44ce48407943174adec7c14db82",
-      "deployedBytecodeHash": "4377524d3808d3871e7966173268458d27ebc44ce48407943174adec7c14db82",
+      "address": "0x8D9E645ce997Ad74D4F63c54d7336c8A0F2fDbb3",
+      "constructorCode": "6080604052613180806100136000396000f3fe",
+      "bodyBytecodeHash": "bca117952e2bce4b6324be254249ffe5fdd1b8f860735a0d5f8e92a2647fc51b",
+      "localBytecodeHash": "0a3a94a0b5f4053cddfb34bcedb98bd0940ac549b9cdb06d0f0e49c25b9dbf81",
+      "deployedBytecodeHash": "0a3a94a0b5f4053cddfb34bcedb98bd0940ac549b9cdb06d0f0e49c25b9dbf81",
       "types": {
         "t_bool": {
           "id": "t_bool",
@@ -685,7 +685,7 @@
           "contract": "Initializable",
           "path": "@openzeppelin\\upgrades\\contracts\\Initializable.sol",
           "label": "initialized",
-          "astId": 8921,
+          "astId": 8957,
           "type": "t_bool",
           "src": "757:24:40"
         },
@@ -693,7 +693,7 @@
           "contract": "Initializable",
           "path": "@openzeppelin\\upgrades\\contracts\\Initializable.sol",
           "label": "initializing",
-          "astId": 8923,
+          "astId": 8959,
           "type": "t_bool",
           "src": "876:25:40"
         },
@@ -701,7 +701,7 @@
           "contract": "Initializable",
           "path": "@openzeppelin\\upgrades\\contracts\\Initializable.sol",
           "label": "______gap",
-          "astId": 8985,
+          "astId": 9021,
           "type": "t_array:50<t_uint256>",
           "src": "1982:29:40"
         },
@@ -709,7 +709,7 @@
           "contract": "Ownable",
           "path": "@openzeppelin\\contracts-ethereum-package\\contracts\\ownership\\Ownable.sol",
           "label": "_owner",
-          "astId": 8001,
+          "astId": 8037,
           "type": "t_address",
           "src": "526:22:32"
         },
@@ -717,7 +717,7 @@
           "contract": "Ownable",
           "path": "@openzeppelin\\contracts-ethereum-package\\contracts\\ownership\\Ownable.sol",
           "label": "______gap",
-          "astId": 8114,
+          "astId": 8150,
           "type": "t_array:50<t_uint256>",
           "src": "2471:29:32"
         },
@@ -725,7 +725,7 @@
           "contract": "ReentrancyGuard",
           "path": "@openzeppelin\\contracts-ethereum-package\\contracts\\utils\\ReentrancyGuard.sol",
           "label": "_guardCounter",
-          "astId": 8883,
+          "astId": 8919,
           "type": "t_uint256",
           "src": "733:29:39"
         },
@@ -733,7 +733,7 @@
           "contract": "ReentrancyGuard",
           "path": "@openzeppelin\\contracts-ethereum-package\\contracts\\utils\\ReentrancyGuard.sol",
           "label": "______gap",
-          "astId": 8916,
+          "astId": 8952,
           "type": "t_array:50<t_uint256>",
           "src": "1563:29:39"
         },
@@ -887,7 +887,7 @@
           "label": "totalTokens",
           "astId": 63,
           "type": "t_uint256",
-          "src": "1311:24:0"
+          "src": "1311:23:0"
         },
         {
           "contract": "LidCertifiedPresale",
@@ -895,7 +895,7 @@
           "label": "totalEth",
           "astId": 65,
           "type": "t_uint256",
-          "src": "1342:21:0"
+          "src": "1341:21:0"
         },
         {
           "contract": "LidCertifiedPresale",
@@ -903,7 +903,7 @@
           "label": "finalEndTime",
           "astId": 67,
           "type": "t_uint256",
-          "src": "1370:25:0"
+          "src": "1369:24:0"
         },
         {
           "contract": "LidCertifiedPresale",
@@ -911,7 +911,7 @@
           "label": "token",
           "astId": 69,
           "type": "t_address",
-          "src": "1404:34:0"
+          "src": "1402:34:0"
         },
         {
           "contract": "LidCertifiedPresale",
@@ -919,7 +919,7 @@
           "label": "uniswapRouter",
           "astId": 71,
           "type": "t_address",
-          "src": "1445:40:0"
+          "src": "1443:40:0"
         },
         {
           "contract": "LidCertifiedPresale",
@@ -927,7 +927,7 @@
           "label": "timer",
           "astId": 73,
           "type": "t_address",
-          "src": "1492:38:0"
+          "src": "1490:38:0"
         },
         {
           "contract": "LidCertifiedPresale",
@@ -935,7 +935,7 @@
           "label": "depositAccounts",
           "astId": 77,
           "type": "t_mapping<t_uint256>",
-          "src": "1539:47:0"
+          "src": "1537:47:0"
         },
         {
           "contract": "LidCertifiedPresale",
@@ -943,7 +943,7 @@
           "label": "accountEarnedLid",
           "astId": 81,
           "type": "t_mapping<t_uint256>",
-          "src": "1593:48:0"
+          "src": "1591:48:0"
         },
         {
           "contract": "LidCertifiedPresale",
@@ -951,7 +951,7 @@
           "label": "accountClaimedLid",
           "astId": 85,
           "type": "t_mapping<t_uint256>",
-          "src": "1648:49:0"
+          "src": "1646:49:0"
         },
         {
           "contract": "LidCertifiedPresale",
@@ -959,7 +959,7 @@
           "label": "whitelist",
           "astId": 89,
           "type": "t_mapping<t_bool>",
-          "src": "1704:41:0"
+          "src": "1702:41:0"
         },
         {
           "contract": "LidCertifiedPresale",
@@ -967,7 +967,23 @@
           "label": "earnedReferrals",
           "astId": 93,
           "type": "t_mapping<t_uint256>",
-          "src": "1752:47:0"
+          "src": "1750:47:0"
+        },
+        {
+          "contract": "LidCertifiedPresale",
+          "path": "..\\..\\D\\LID\\lid-contracts\\contracts\\LidCertifiedPresale.sol",
+          "label": "totalDepositors",
+          "astId": 95,
+          "type": "t_uint256",
+          "src": "1806:27:0"
+        },
+        {
+          "contract": "LidCertifiedPresale",
+          "path": "..\\..\\D\\LID\\lid-contracts\\contracts\\LidCertifiedPresale.sol",
+          "label": "referralCounts",
+          "astId": 99,
+          "type": "t_mapping<t_uint256>",
+          "src": "1840:46:0"
         }
       ],
       "warnings": {
@@ -975,7 +991,22 @@
         "hasSelfDestruct": false,
         "hasDelegateCall": false,
         "hasInitialValuesInDeclarations": false,
-        "uninitializedBaseContracts": []
+        "uninitializedBaseContracts": [],
+        "storageUncheckedVars": [],
+        "storageDiff": [
+          {
+            "action": "append",
+            "updated": {
+              "index": 37,
+              "contract": "LidCertifiedPresale",
+              "path": "..\\..\\D\\LID\\lid-contracts\\contracts\\LidCertifiedPresale.sol",
+              "label": "referralCounts",
+              "astId": 99,
+              "type": "t_mapping<t_uint256>",
+              "src": "1840:46:0"
+            }
+          }
+        ]
       }
     },
     "LidDaoLock": {
@@ -1572,7 +1603,7 @@
       {
         "address": "0x9a54FE35D41bc7c8F7071aBf0cCD952505e29ceb",
         "version": "1.0.0",
-        "implementation": "0x0000000000000000000000000000000000000000",
+        "implementation": "0x8037F19214ce80b1DcAc1322825Fa4B23119cD23",
         "admin": "0x893FA3626C92b0f313F81c830798D14F73f900a6",
         "kind": "Upgradeable"
       }
@@ -1608,7 +1639,7 @@
       {
         "address": "0xE42516bb7743cD74d4186d64c914185ee594b5b6",
         "version": "1.0.0",
-        "implementation": "0x334dCC1C3bc1EbeaaA09079e6Fd647900881D4Cf",
+        "implementation": "0x8D9E645ce997Ad74D4F63c54d7336c8A0F2fDbb3",
         "admin": "0x893FA3626C92b0f313F81c830798D14F73f900a6",
         "kind": "Upgradeable"
       }

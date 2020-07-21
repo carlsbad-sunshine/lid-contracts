@@ -39,9 +39,9 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
     bool public hasIssuedTokens;
     bool public hasSentEther;
 
-    uint private totalTokens;
+    uint public totalTokens;
     uint private totalEth;
-    uint private finalEndTime;
+    uint public finalEndTime;
 
     ILidCertifiableToken private token;
     IUniswapV2Router01 private uniswapRouter;
@@ -52,6 +52,9 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
     mapping(address => uint) public accountClaimedLid;
     mapping(address => bool) public whitelist;
     mapping(address => uint) public earnedReferrals;
+
+    uint public totalDepositors;
+    mapping(address => uint) public referralCounts;
 
     modifier whenPresaleActive {
         require(timer.isStarted(), "Presale not yet started.");
@@ -152,7 +155,7 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
         require(!hasSentToUniswap, "Has already sent to Uniswap.");
         finalEndTime = now;
         hasSentToUniswap = true;
-        totalTokens = token.totalSupply().divBP(presaleTokenBP);
+        totalTokens = totalTokens.divBP(presaleTokenBP);
         uint uniswapTokens = totalTokens.mulBP(uniswapTokenBP);
         totalEth = address(this).balance;
         uint uniswapEth = totalEth.mulBP(uniswapEthBP);
@@ -234,15 +237,20 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
 
         require(msg.value > 0.01 ether, "Must purchase at least 0.01 ether.");
 
+        if(depositAccounts[msg.sender] == 0) totalDepositors = totalDepositors.add(1);
+
         uint depositVal = msg.value.subBP(referralBP);
         uint tokensToIssue = depositVal.div(calculateRate());
         depositAccounts[msg.sender] = depositAccounts[msg.sender].add(depositVal);
+
+        totalTokens = totalTokens.add(tokensToIssue);
 
         accountEarnedLid[msg.sender] = accountEarnedLid[msg.sender].add(tokensToIssue);
 
         if (referrer != address(0x0) && referrer != msg.sender) {
             uint referralValue = msg.value.sub(depositVal);
             earnedReferrals[referrer] = earnedReferrals[referrer].add(referralValue);
+            referralCounts[referrer] = referralCounts[referrer].add(1);
             referrer.transfer(referralValue);
         }
     }
