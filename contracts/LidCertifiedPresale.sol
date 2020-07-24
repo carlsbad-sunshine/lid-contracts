@@ -56,6 +56,11 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
     uint public totalDepositors;
     mapping(address => uint) public referralCounts;
 
+    uint lidRepaired;
+    bool pauseDeposit;
+
+    mapping(address => bool) public isRepaired;
+
     modifier whenPresaleActive {
         require(timer.isStarted(), "Presale not yet started.");
         require(!_isPresaleEnded(), "Presale has ended.");
@@ -202,6 +207,10 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
         }
     }
 
+    function setDepositPause(bool val) external onlyOwner {
+        pauseDeposit = val;
+    }
+
     function setWhitelist(address account, bool value) external onlyOwner {
         whitelist[account] = value;
     }
@@ -220,6 +229,7 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
     }
 
     function deposit(address payable referrer) public payable whenPresaleActive nonReentrant {
+        require(!pauseDeposit, "Deposits are paused.");
         if (whitelist[msg.sender]) {
             require(
                 depositAccounts[msg.sender].add(msg.value) <=
@@ -240,7 +250,7 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
         if(depositAccounts[msg.sender] == 0) totalDepositors = totalDepositors.add(1);
 
         uint depositVal = msg.value.subBP(referralBP);
-        uint tokensToIssue = depositVal.div(calculateRate());
+        uint tokensToIssue = depositVal.mul(10**18).div(calculateRatePerEth());
         depositAccounts[msg.sender] = depositAccounts[msg.sender].add(depositVal);
 
         totalTokens = totalTokens.add(tokensToIssue);
@@ -253,6 +263,24 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
             referralCounts[referrer] = referralCounts[referrer].add(1);
             referrer.transfer(referralValue);
         }
+    }
+
+    function resetRepair(address[] calldata accounts) external onlyOwner {
+        for (uint i = 0; i < accounts.length; ++i) {
+            isRepaired[accounts[i]] = false;
+        }
+        lidRepaired = 0;
+    }
+
+    function repair(address[] calldata accounts) external onlyOwner {
+        uint _lidRepaired = lidRepaired;
+        for (uint i = 0; i < accounts.length; ++i) {
+            (uint lid, bool didRepair) = _repairAccount(accounts[i], _lidRepaired);
+            if (didRepair) {
+                _lidRepaired = _lidRepaired.add(lid);
+            }
+        }
+        lidRepaired = _lidRepaired;
     }
 
     function calculateReedemable(address account) public view returns (uint) {
@@ -270,12 +298,23 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
         return claimable;
     }
 
-    function calculateRate() public view returns (uint) {
-        return token.totalSupply().mul(multiplierPrice).add(startingPrice);
+    function calculateRatePerEth() public view returns (uint) {
+        return totalTokens.div(10**18).mul(multiplierPrice).add(startingPrice);
     }
 
     function getMaxWhitelistedDeposit(uint atTotalDeposited) public view returns (uint) {
         return atTotalDeposited.mulBP(maxBuyPerAddressBP).add(maxBuyPerAddressBase);
+    }
+
+    function _repairAccount(address account, uint lidAtPurchase) internal onlyOwner returns (uint, bool) {
+        if(isRepaired[account]) return (0, false);
+        isRepaired[account] = true;
+        uint currentLid = accountEarnedLid[account];
+        uint correctEthPrice = lidAtPurchase.div(10**18).mul(multiplierPrice).add(startingPrice);
+        uint correctLid = depositAccounts[account].mul(10**18).div(correctEthPrice);
+        accountEarnedLid[account] = correctLid;
+        totalTokens = totalTokens.sub(currentLid).add(correctLid);
+        return (correctLid, true);
     }
 
     function _isPresaleEnded() internal view returns (bool) {
