@@ -1428,9 +1428,9 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
     bool public hasIssuedTokens;
     bool public hasSentEther;
 
-    uint private totalTokens;
+    uint public totalTokens;
     uint private totalEth;
-    uint private finalEndTime;
+    uint public finalEndTime;
 
     ILidCertifiableToken private token;
     IUniswapV2Router01 private uniswapRouter;
@@ -1441,6 +1441,14 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
     mapping(address => uint) public accountClaimedLid;
     mapping(address => bool) public whitelist;
     mapping(address => uint) public earnedReferrals;
+
+    uint public totalDepositors;
+    mapping(address => uint) public referralCounts;
+
+    uint lidRepaired;
+    bool pauseDeposit;
+
+    mapping(address => bool) public isRepaired;
 
     modifier whenPresaleActive {
         require(timer.isStarted(), "Presale not yet started.");
@@ -1541,7 +1549,7 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
         require(!hasSentToUniswap, "Has already sent to Uniswap.");
         finalEndTime = now;
         hasSentToUniswap = true;
-        totalTokens = token.totalSupply().divBP(presaleTokenBP);
+        totalTokens = totalTokens.divBP(presaleTokenBP);
         uint uniswapTokens = totalTokens.mulBP(uniswapTokenBP);
         totalEth = address(this).balance;
         uint uniswapEth = totalEth.mulBP(uniswapEthBP);
@@ -1556,7 +1564,6 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
             address(0x000000000000000000000000000000000000dEaD),
             now
         );
-        token.activateTax();
     }
 
     function issueTokens() external whenPresaleFinished {
@@ -1588,6 +1595,10 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
         }
     }
 
+    function setDepositPause(bool val) external onlyOwner {
+        pauseDeposit = val;
+    }
+
     function setWhitelist(address account, bool value) external onlyOwner {
         whitelist[account] = value;
     }
@@ -1600,12 +1611,15 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
 
     function redeem() external whenPresaleFinished {
         require(hasSentToUniswap, "Must have sent to Uniswap before any redeems.");
+        require(hasIssuedTokens, "Must have issued tokens.");
+        require(hasSentEther, "Must have sent Ether.");
         uint claimable = calculateReedemable(msg.sender);
         accountClaimedLid[msg.sender] = accountClaimedLid[msg.sender].add(claimable);
         token.mint(msg.sender, claimable);
     }
 
     function deposit(address payable referrer) public payable whenPresaleActive nonReentrant {
+        require(!pauseDeposit, "Deposits are paused.");
         if (whitelist[msg.sender]) {
             require(
                 depositAccounts[msg.sender].add(msg.value) <=
@@ -1623,15 +1637,20 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
 
         require(msg.value > 0.01 ether, "Must purchase at least 0.01 ether.");
 
+        if(depositAccounts[msg.sender] == 0) totalDepositors = totalDepositors.add(1);
+
         uint depositVal = msg.value.subBP(referralBP);
-        uint tokensToIssue = depositVal.div(calculateRate());
+        uint tokensToIssue = depositVal.mul(10**18).div(calculateRatePerEth());
         depositAccounts[msg.sender] = depositAccounts[msg.sender].add(depositVal);
+
+        totalTokens = totalTokens.add(tokensToIssue);
 
         accountEarnedLid[msg.sender] = accountEarnedLid[msg.sender].add(tokensToIssue);
 
         if (referrer != address(0x0) && referrer != msg.sender) {
             uint referralValue = msg.value.sub(depositVal);
             earnedReferrals[referrer] = earnedReferrals[referrer].add(referralValue);
+            referralCounts[referrer] = referralCounts[referrer].add(1);
             referrer.transfer(referralValue);
         }
     }
@@ -1651,8 +1670,8 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
         return claimable;
     }
 
-    function calculateRate() public view returns (uint) {
-        return token.totalSupply().mul(multiplierPrice).add(startingPrice);
+    function calculateRatePerEth() public view returns (uint) {
+        return totalTokens.div(10**18).mul(multiplierPrice).add(startingPrice);
     }
 
     function getMaxWhitelistedDeposit(uint atTotalDeposited) public view returns (uint) {
@@ -1666,6 +1685,10 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
     }
 
 }
+
+// File: contracts\LidToken.sol
+
+pragma solidity 0.5.16;
 
 
 contract LidToken is
@@ -1688,11 +1711,12 @@ contract LidToken is
     bool public isTaxActive;
     bool public isTransfersActive;
 
-
     mapping(address => bool) private trustedContracts;
     mapping(address => bool) public taxExempt;
     mapping(address => bool) public fromOnlyTaxExempt;
     mapping(address => bool) public toOnlyTaxExempt;
+
+    string private _name;
 
     modifier onlyPresaleContract() {
         require(msg.sender == address(lidPresale), "Can only be called by presale sc.");
@@ -1757,6 +1781,14 @@ contract LidToken is
 
     function activateTax() external onlyPresaleContract {
         isTaxActive = true;
+    }
+
+    function updateName(string calldata value) external onlyOwner {
+        _name = value;
+    }
+
+    function name() public view returns (string memory) {
+        return _name;
     }
 
     function transfer(address recipient, uint amount) public returns (bool) {

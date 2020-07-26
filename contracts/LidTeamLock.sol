@@ -85,6 +85,24 @@ contract LidTeamLock is Initializable {
         releaseStart = now.add(24 hours);
     }
 
+    function resetTeam(
+        address payable[] calldata _teamMemberAddresses,
+        uint[] calldata _teamMemberBPs
+    ) external {
+        require(msg.sender == teamMemberAddresses[0], "Must be project lead.");
+        delete teamMemberAddresses;
+        delete teamMemberBPs;
+        for (uint i = 0; i < _teamMemberAddresses.length; i++) {
+            teamMemberAddresses.push(_teamMemberAddresses[i]);
+        }
+
+        uint totalTeamBP = 0;
+        for (uint i = 0; i < _teamMemberBPs.length; i++) {
+            teamMemberBPs.push(_teamMemberBPs[i]);
+            totalTeamBP = totalTeamBP.add(_teamMemberBPs[i]);
+        }
+    }
+
     function getCurrentCycleCount() public view returns (uint) {
         if (now <= releaseStart) return 0;
         return now.sub(releaseStart).div(releaseInterval).add(1);

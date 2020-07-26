@@ -727,7 +727,6 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
             address(0x000000000000000000000000000000000000dEaD),
             now
         );
-        token.activateTax();
     }
 
     function issueTokens() external whenPresaleFinished {
@@ -775,6 +774,8 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
 
     function redeem() external whenPresaleFinished {
         require(hasSentToUniswap, "Must have sent to Uniswap before any redeems.");
+        require(hasIssuedTokens, "Must have issued tokens.");
+        require(hasSentEther, "Must have sent Ether.");
         uint claimable = calculateReedemable(msg.sender);
         accountClaimedLid[msg.sender] = accountClaimedLid[msg.sender].add(claimable);
         token.mint(msg.sender, claimable);
@@ -817,24 +818,6 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
         }
     }
 
-    function resetRepair(address[] calldata accounts) external onlyOwner {
-        for (uint i = 0; i < accounts.length; ++i) {
-            isRepaired[accounts[i]] = false;
-        }
-        lidRepaired = 0;
-    }
-
-    function repair(address[] calldata accounts) external onlyOwner {
-        uint _lidRepaired = lidRepaired;
-        for (uint i = 0; i < accounts.length; ++i) {
-            (uint lid, bool didRepair) = _repairAccount(accounts[i], _lidRepaired);
-            if (didRepair) {
-                _lidRepaired = _lidRepaired.add(lid);
-            }
-        }
-        lidRepaired = _lidRepaired;
-    }
-
     function calculateReedemable(address account) public view returns (uint) {
         if (finalEndTime == 0) return 0;
         uint earnedLid = accountEarnedLid[account];
@@ -856,17 +839,6 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
 
     function getMaxWhitelistedDeposit(uint atTotalDeposited) public view returns (uint) {
         return atTotalDeposited.mulBP(maxBuyPerAddressBP).add(maxBuyPerAddressBase);
-    }
-
-    function _repairAccount(address account, uint lidAtPurchase) internal onlyOwner returns (uint, bool) {
-        if(isRepaired[account]) return (0, false);
-        isRepaired[account] = true;
-        uint currentLid = accountEarnedLid[account];
-        uint correctEthPrice = lidAtPurchase.div(10**18).mul(multiplierPrice).add(startingPrice);
-        uint correctLid = depositAccounts[account].mul(10**18).div(correctEthPrice);
-        accountEarnedLid[account] = correctLid;
-        totalTokens = totalTokens.sub(currentLid).add(correctLid);
-        return (correctLid, true);
     }
 
     function _isPresaleEnded() internal view returns (bool) {

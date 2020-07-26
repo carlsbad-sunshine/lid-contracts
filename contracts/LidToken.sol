@@ -33,11 +33,12 @@ contract LidToken is
     bool public isTaxActive;
     bool public isTransfersActive;
 
-
     mapping(address => bool) private trustedContracts;
     mapping(address => bool) public taxExempt;
     mapping(address => bool) public fromOnlyTaxExempt;
     mapping(address => bool) public toOnlyTaxExempt;
+
+    string private _name;
 
     modifier onlyPresaleContract() {
         require(msg.sender == address(lidPresale), "Can only be called by presale sc.");
@@ -102,6 +103,14 @@ contract LidToken is
 
     function activateTax() external onlyPresaleContract {
         isTaxActive = true;
+    }
+
+    function updateName(string calldata value) external onlyOwner {
+        _name = value;
+    }
+
+    function name() public view returns (string memory) {
+        return _name;
     }
 
     function transfer(address recipient, uint amount) public returns (bool) {

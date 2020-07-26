@@ -175,7 +175,6 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
             address(0x000000000000000000000000000000000000dEaD),
             now
         );
-        token.activateTax();
     }
 
     function issueTokens() external whenPresaleFinished {
@@ -223,6 +222,8 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
 
     function redeem() external whenPresaleFinished {
         require(hasSentToUniswap, "Must have sent to Uniswap before any redeems.");
+        require(hasIssuedTokens, "Must have issued tokens.");
+        require(hasSentEther, "Must have sent Ether.");
         uint claimable = calculateReedemable(msg.sender);
         accountClaimedLid[msg.sender] = accountClaimedLid[msg.sender].add(claimable);
         token.mint(msg.sender, claimable);

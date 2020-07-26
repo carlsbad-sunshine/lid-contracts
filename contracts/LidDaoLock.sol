@@ -44,7 +44,7 @@ contract LidDaoLock is Initializable, Ownable {
     }
 
     function claimLid() external onlyAfterStart {
-        require(releaseStart == 0, "Has already started.");
+        require(releaseStart != 0, "Has not yet started.");
         uint cycle = getCurrentCycleCount();
         uint totalClaimAmount = cycle.mul(startingLid.mulBP(releaseBP));
         uint toClaim = totalClaimAmount.sub(claimedLid);
