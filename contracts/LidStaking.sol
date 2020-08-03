@@ -19,16 +19,22 @@ contract LidStaking is Initializable, Ownable {
     ILidCertifiableToken private lidToken;
 
     mapping(address => uint) public stakeValue;
-    mapping(address => int) private stakerPayouts;
+    mapping(address => int) public stakerPayouts;
+
 
     uint public totalDistributions;
     uint public totalStaked;
     uint public totalStakers;
-    uint private profitPerShare;
+    uint public profitPerShare;
     uint private emptyStakeTokens; //These are tokens given to the contract when there are no stakers.
 
     IStakeHandler[] public stakeHandlers;
     uint public startTime;
+
+    uint public registrationFeeWithReferrer;
+    uint public registrationFeeWithoutReferrer;
+    mapping(address => uint) public accountReferrals;
+    mapping(address => bool) public stakerIsRegistered;
 
     event OnDistribute(address sender, uint amountSent);
     event OnStake(address sender, uint amount, uint tax);
@@ -49,18 +55,47 @@ contract LidStaking is Initializable, Ownable {
     function initialize(
         uint _stakingTaxBP,
         uint _ustakingTaxBP,
+        uint _registrationFeeWithReferrer,
+        uint _registrationFeeWithoutReferrer,
         address owner,
         ILidCertifiableToken _lidToken
-    ) public initializer {
+    ) external initializer {
         Ownable.initialize(msg.sender);
         stakingTaxBP = _stakingTaxBP;
         unstakingTaxBP = _ustakingTaxBP;
         lidToken = _lidToken;
+        registrationFeeWithReferrer = _registrationFeeWithReferrer;
+        registrationFeeWithoutReferrer = _registrationFeeWithoutReferrer;
         //Due to issue in oz testing suite, the msg.sender might not be owner
         _transferOwnership(owner);
     }
 
+    function registerAndStake(uint amount) public {
+        registerAndStake(amount, address(0x0));
+    }
+
+    function registerAndStake(uint amount, address referrer) public whenStakingActive {
+        require(!stakerIsRegistered[msg.sender], "Staker must not be registered");
+        require(lidToken.balanceOf(msg.sender) >= amount, "Must have enough balance to stake amount");
+        uint finalAmount;
+        if(address(0x0) == referrer) {
+            //No referrer
+            require(amount >= registrationFeeWithoutReferrer, "Must send at least enough LID to pay registration fee.");
+            distribute(registrationFeeWithoutReferrer);
+            finalAmount = amount.sub(registrationFeeWithoutReferrer);
+        } else {
+            //has referrer
+            require(amount >= registrationFeeWithReferrer, "Must send at least enough LID to pay registration fee.");
+            require(lidToken.transferFrom(msg.sender, referrer, registrationFeeWithReferrer), "Stake failed due to failed referral transfer.");
+            accountReferrals[referrer] = accountReferrals[referrer].add(1);
+            finalAmount = amount.sub(registrationFeeWithReferrer);
+        }
+        stakerIsRegistered[msg.sender] = true;
+        stake(finalAmount);
+    }
+
     function stake(uint amount) public whenStakingActive {
+        require(stakerIsRegistered[msg.sender] == true, "Must be registered to stake.");
         require(amount >= 1e18, "Must stake at least one LID.");
         require(lidToken.balanceOf(msg.sender) >= amount, "Cannot stake more LID than you hold unstaked.");
         if (stakeValue[msg.sender] == 0) totalStakers = totalStakers.add(1);
@@ -69,7 +104,7 @@ contract LidStaking is Initializable, Ownable {
         emit OnStake(msg.sender, amount, tax);
     }
 
-    function unstake(uint amount) public whenStakingActive {
+    function unstake(uint amount) external whenStakingActive {
         require(amount >= 1e18, "Must unstake at least one LID.");
         require(stakeValue[msg.sender] >= amount, "Cannot unstake more LID than you have staked.");
         uint tax = findTaxAmount(amount, unstakingTaxBP);
@@ -87,14 +122,14 @@ contract LidStaking is Initializable, Ownable {
         emit OnUnstake(msg.sender, amount, tax);
     }
 
-    function withdraw(uint amount) public whenStakingActive {
+    function withdraw(uint amount) external whenStakingActive {
         require(dividendsOf(msg.sender) >= amount, "Cannot withdraw more dividends than you have earned.");
         stakerPayouts[msg.sender] = stakerPayouts[msg.sender] + uintToInt(amount.mul(DISTRIBUTION_MULTIPLIER));
         lidToken.transfer(msg.sender, amount);
         emit OnWithdraw(msg.sender, amount);
     }
 
-    function reinvest(uint amount) public whenStakingActive {
+    function reinvest(uint amount) external whenStakingActive {
         require(dividendsOf(msg.sender) >= amount, "Cannot reinvest more dividends than you have earned.");
         uint payout = amount.mul(DISTRIBUTION_MULTIPLIER);
         stakerPayouts[msg.sender] = stakerPayouts[msg.sender] + uintToInt(payout);
@@ -113,7 +148,7 @@ contract LidStaking is Initializable, Ownable {
         emit OnDistribute(msg.sender, amount);
     }
 
-    function handleTaxDistribution(uint amount) public onlyLidToken {
+    function handleTaxDistribution(uint amount) external onlyLidToken {
         totalDistributions = totalDistributions.add(amount);
         _increaseProfitPerShare(amount);
         emit OnDistribute(msg.sender, amount);
@@ -128,32 +163,37 @@ contract LidStaking is Initializable, Ownable {
         return value.mulBP(taxBP);
     }
 
-    function numberStakeHandlersRegistered() public view returns (uint) {
+    function numberStakeHandlersRegistered() external view returns (uint) {
         return stakeHandlers.length;
     }
 
-    function registerStakeHandler(IStakeHandler sc) public onlyOwner {
+    function registerStakeHandler(IStakeHandler sc) external onlyOwner {
         stakeHandlers.push(sc);
     }
 
-    function unregisterStakeHandler(uint index) public onlyOwner {
+    function unregisterStakeHandler(uint index) external onlyOwner {
         IStakeHandler sc = stakeHandlers[stakeHandlers.length-1];
         stakeHandlers.pop();
         stakeHandlers[index] = sc;
     }
 
-    function setStakingBP(uint valueBP) public onlyOwner {
+    function setStakingBP(uint valueBP) external onlyOwner {
         require(valueBP < 10000, "Tax connot be over 100% (10000 BP)");
         stakingTaxBP = valueBP;
     }
 
-    function setUnstakingBP(uint valueBP) public onlyOwner {
+    function setUnstakingBP(uint valueBP) external onlyOwner {
         require(valueBP < 10000, "Tax connot be over 100% (10000 BP)");
         unstakingTaxBP = valueBP;
     }
 
-    function setStartTime(uint _startTime) public onlyOwner {
+    function setStartTime(uint _startTime) external onlyOwner {
         startTime = _startTime;
+    }
+
+    function setRegistrationFees(uint valueWithReferrer, uint valueWithoutReferrer) external onlyOwner {
+        registrationFeeWithReferrer = valueWithReferrer;
+        registrationFeeWithoutReferrer = valueWithoutReferrer;
     }
 
     function uintToInt(uint val) internal pure returns (int) {

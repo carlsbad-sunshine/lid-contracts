@@ -13,7 +13,9 @@ config.LidToken = {
 config.LidStaking = {
   stakingTaxBP: 0,
   unstakingTaxBP: 200,
-  startTime: 1593918000
+  startTime: 1596322800,
+  registrationFeeWithReferrer: ether("400"),
+  registrationFeeWithoutReferrer: ether("200")
 }
 
 config.LidPresale = {

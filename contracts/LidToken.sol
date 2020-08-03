@@ -109,6 +109,10 @@ contract LidToken is
         _name = value;
     }
 
+    function setPresaleSC(LidCertifiedPresale value) external onlyOwner {
+        lidPresale = value;
+    }
+
     function name() public view returns (string memory) {
         return _name;
     }

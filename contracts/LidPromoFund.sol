@@ -42,11 +42,11 @@ contract LidPromoFund is Initializable {
         totalLidAuthorized = totalLidAuthorized.add(amount);
     }
 
-    function releaseEthToAddress(address receiver, uint amount) external returns(uint) {
+    function releaseEthToAddress(address payable receiver, uint amount) external returns(uint) {
         require(msg.sender == releaser, "Can only be called releaser.");
         require(amount <= totalEthAuthorized.sub(totalEthReleased), "Cannot release more Eth than available.");
         totalEthReleased = totalEthReleased.add(amount);
-        lidToken.transfer(receiver, amount);
+        receiver.transfer(amount);
     }
 
     function authorizeEth(uint amount) external returns (uint) {

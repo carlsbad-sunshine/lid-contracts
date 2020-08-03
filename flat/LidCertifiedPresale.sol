@@ -758,6 +758,11 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
         }
     }
 
+    function emergencyEthWithdrawl() external whenPresaleFinished nonReentrant onlyOwner {
+        require(hasSentToUniswap, "Has not yet sent to Uniswap.");
+        msg.sender.transfer(address(this).balance);
+    }
+
     function setDepositPause(bool val) external onlyOwner {
         pauseDeposit = val;
     }
@@ -774,8 +779,6 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
 
     function redeem() external whenPresaleFinished {
         require(hasSentToUniswap, "Must have sent to Uniswap before any redeems.");
-        require(hasIssuedTokens, "Must have issued tokens.");
-        require(hasSentEther, "Must have sent Ether.");
         uint claimable = calculateReedemable(msg.sender);
         accountClaimedLid[msg.sender] = accountClaimedLid[msg.sender].add(claimable);
         token.mint(msg.sender, claimable);
@@ -822,7 +825,7 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
         if (finalEndTime == 0) return 0;
         uint earnedLid = accountEarnedLid[account];
         uint claimedLid = accountClaimedLid[account];
-        uint cycles = finalEndTime.div(redeemInterval).add(1);
+        uint cycles = now.sub(finalEndTime).div(redeemInterval).add(1);
         uint totalRedeemable = earnedLid.mulBP(redeemBP).mul(cycles);
         uint claimable;
         if (totalRedeemable >= earnedLid) {

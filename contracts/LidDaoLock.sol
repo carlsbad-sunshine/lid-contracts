@@ -43,6 +43,8 @@ contract LidDaoLock is Initializable, Ownable {
         _transferOwnership(owner);
     }
 
+    function() external payable { }
+
     function claimLid() external onlyAfterStart {
         require(releaseStart != 0, "Has not yet started.");
         uint cycle = getCurrentCycleCount();

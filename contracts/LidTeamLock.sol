@@ -56,20 +56,23 @@ contract LidTeamLock is Initializable {
         require(totalTeamBP == 10000, "Must allocate exactly 100% (10000 BP) to team.");
     }
 
-    function claimLid() external onlyAfterStart {
+    function claimLid(uint id) external onlyAfterStart {
         require(checkIfTeamMember(msg.sender), "Can only be called by team members.");
+        require(msg.sender == teamMemberAddresses[id], "Sender must be team member ID");
+        uint bp = teamMemberBPs[id];
         uint cycle = getCurrentCycleCount();
-        uint totalClaimAmount = cycle.mul(startingLid.mulBP(releaseBP));
+        uint totalClaimAmount = cycle.mul(startingLid.mulBP(bp).mulBP(releaseBP));
         uint toClaim = totalClaimAmount.sub(teamMemberClaimedLid[msg.sender]);
         if (lidToken.balanceOf(address(this)) < toClaim) toClaim = lidToken.balanceOf(address(this));
         teamMemberClaimedLid[msg.sender] = teamMemberClaimedLid[msg.sender].add(toClaim);
         lidToken.transfer(msg.sender, toClaim);
     }
 
-    function claimEth() external onlyAfterStart {
+    function claimEth(uint id) external {
         require(checkIfTeamMember(msg.sender), "Can only be called by team members.");
-        uint cycle = getCurrentCycleCount();
-        uint totalClaimAmount = cycle.mul(startingEth.mulBP(releaseBP));
+        require(msg.sender == teamMemberAddresses[id], "Sender must be team member ID");
+        uint bp = teamMemberBPs[id];
+        uint totalClaimAmount = startingEth.mulBP(bp);
         uint toClaim = totalClaimAmount.sub(teamMemberClaimedEth[msg.sender]);
         if (address(this).balance < toClaim) toClaim = address(this).balance;
         teamMemberClaimedEth[msg.sender] = teamMemberClaimedEth[msg.sender].add(toClaim);
