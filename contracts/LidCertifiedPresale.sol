@@ -251,7 +251,7 @@ contract LidCertifiedPresale is Initializable, Ownable, ReentrancyGuard {
 
         require(msg.value > 0.01 ether, "Must purchase at least 0.01 ether.");
 
-        if(depositAccounts[msg.sender] == 0) totalDepositors = totalDepositors.add(1);
+        if (depositAccounts[msg.sender] == 0) totalDepositors = totalDepositors.add(1);
 
         uint depositVal = msg.value.subBP(referralBP);
         uint tokensToIssue = depositVal.mul(10**18).div(calculateRatePerEth());

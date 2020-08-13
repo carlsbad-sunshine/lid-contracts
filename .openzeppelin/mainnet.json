@@ -1312,11 +1312,11 @@
       }
     },
     "LidStaking": {
-      "address": "0x47eb1248dE0176d34De71db390BF97a877bdF573",
-      "constructorCode": "60806040526126a4806100136000396000f3fe",
-      "bodyBytecodeHash": "3c23e36cb006549d43e9deceb3e777f9adee30f63134fdd9a9a02cfeda64adf8",
-      "localBytecodeHash": "2130da96143d6a320665fec4f4d2fd405fc9f412d44f90c5d7d806da582c2218",
-      "deployedBytecodeHash": "2130da96143d6a320665fec4f4d2fd405fc9f412d44f90c5d7d806da582c2218",
+      "address": "0x0dbA21F1e0a7F164a6F4072822F969ad7d4c255D",
+      "constructorCode": "608060405261270f806100136000396000f3fe",
+      "bodyBytecodeHash": "420c7402595a3fbb7f37b7e2b32280f6965333fbc102d2ec6205ae7765367301",
+      "localBytecodeHash": "df341dbe05b2cba03f625e0c2bc39d002e674ba4e0093244787f40872d7c14c8",
+      "deployedBytecodeHash": "df341dbe05b2cba03f625e0c2bc39d002e674ba4e0093244787f40872d7c14c8",
       "types": {
         "t_bool": {
           "id": "t_bool",
@@ -1376,7 +1376,7 @@
           "contract": "Initializable",
           "path": "@openzeppelin\\upgrades\\contracts\\Initializable.sol",
           "label": "initialized",
-          "astId": 9337,
+          "astId": 9345,
           "type": "t_bool",
           "src": "757:24:40"
         },
@@ -1384,7 +1384,7 @@
           "contract": "Initializable",
           "path": "@openzeppelin\\upgrades\\contracts\\Initializable.sol",
           "label": "initializing",
-          "astId": 9339,
+          "astId": 9347,
           "type": "t_bool",
           "src": "876:25:40"
         },
@@ -1392,7 +1392,7 @@
           "contract": "Initializable",
           "path": "@openzeppelin\\upgrades\\contracts\\Initializable.sol",
           "label": "______gap",
-          "astId": 9401,
+          "astId": 9409,
           "type": "t_array:50<t_uint256>",
           "src": "1982:29:40"
         },
@@ -1400,7 +1400,7 @@
           "contract": "Ownable",
           "path": "@openzeppelin\\contracts-ethereum-package\\contracts\\ownership\\Ownable.sol",
           "label": "_owner",
-          "astId": 8417,
+          "astId": 8425,
           "type": "t_address",
           "src": "526:22:32"
         },
@@ -1408,7 +1408,7 @@
           "contract": "Ownable",
           "path": "@openzeppelin\\contracts-ethereum-package\\contracts\\ownership\\Ownable.sol",
           "label": "______gap",
-          "astId": 8530,
+          "astId": 8538,
           "type": "t_array:50<t_uint256>",
           "src": "2471:29:32"
         },
@@ -1548,56 +1548,7 @@
         "hasInitialValuesInDeclarations": false,
         "uninitializedBaseContracts": [],
         "storageUncheckedVars": [],
-        "storageDiff": [
-          {
-            "action": "append",
-            "updated": {
-              "index": 17,
-              "contract": "LidStaking",
-              "path": "..\\..\\D\\LID\\lid-contracts\\contracts\\LidStaking.sol",
-              "label": "registrationFeeWithReferrer",
-              "astId": 1764,
-              "type": "t_uint256",
-              "src": "1095:39:4"
-            }
-          },
-          {
-            "action": "append",
-            "updated": {
-              "index": 18,
-              "contract": "LidStaking",
-              "path": "..\\..\\D\\LID\\lid-contracts\\contracts\\LidStaking.sol",
-              "label": "registrationFeeWithoutReferrer",
-              "astId": 1766,
-              "type": "t_uint256",
-              "src": "1141:42:4"
-            }
-          },
-          {
-            "action": "append",
-            "updated": {
-              "index": 19,
-              "contract": "LidStaking",
-              "path": "..\\..\\D\\LID\\lid-contracts\\contracts\\LidStaking.sol",
-              "label": "accountReferrals",
-              "astId": 1770,
-              "type": "t_mapping<t_uint256>",
-              "src": "1190:48:4"
-            }
-          },
-          {
-            "action": "append",
-            "updated": {
-              "index": 20,
-              "contract": "LidStaking",
-              "path": "..\\..\\D\\LID\\lid-contracts\\contracts\\LidStaking.sol",
-              "label": "stakerIsRegistered",
-              "astId": 1774,
-              "type": "t_mapping<t_bool>",
-              "src": "1245:50:4"
-            }
-          }
-        ]
+        "storageDiff": []
       }
     },
     "LidCertifiedPresaleTimer": {
@@ -1738,7 +1689,7 @@
       {
         "address": "0x9a54FE35D41bc7c8F7071aBf0cCD952505e29ceb",
         "version": "1.0.0",
-        "implementation": "0x47eb1248dE0176d34De71db390BF97a877bdF573",
+        "implementation": "0x0dbA21F1e0a7F164a6F4072822F969ad7d4c255D",
         "admin": "0x893FA3626C92b0f313F81c830798D14F73f900a6",
         "kind": "Upgradeable"
       }

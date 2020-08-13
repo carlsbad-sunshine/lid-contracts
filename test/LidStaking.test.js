@@ -243,11 +243,12 @@ describe("LidToken", function() {
         await this.lidStaking.unstake(value,{from:staker})
         const finalStakerBalance = await this.lidStaking.stakeValue(staker)
         const staker1DivisQ = await this.lidStaking.dividendsOf(stakers[0])
+        console.log("staker1DivisQ",staker1DivisQ.toString())
         expect(finalStakerBalance.toString())
           .to.equal(initialStakerBalance.sub(value).toString())
       })
       describe("Unstake All", function() {
-        it("Should decrease totalStakers by 1 & Should increase stakers dividends by %owned * tax",async function() {
+        it("Should decrease totalStakers by 1 & Should keep stakers dividends the same",async function() {
           const staker = stakers[0]
           const totalStaked = await this.lidStaking.totalStaked()
           const initialStakerDivis = await this.lidStaking.dividendsOf(staker)
@@ -259,8 +260,12 @@ describe("LidToken", function() {
           const finalStakerDivis = await this.lidStaking.dividendsOf(staker)
           expect(finalTotalStakers.toString())
             .to.equal(initialTotalStakers.sub(new BN(1)).toString())
+          console.log("stakerValue",stakerValue.toString())
+          console.log("tax",tax.toString())
+          console.log("finaldivis",finalStakerDivis.toString())
+          console.log('initialdivis',initialStakerDivis.toString())
           expect(finalStakerDivis.sub(initialStakerDivis).toString())
-            .to.equal(stakerValue.mul(tax).div(stakerValue).toString())
+            .to.equal("0")
         })
 
 
