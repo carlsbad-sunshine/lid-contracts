@@ -16,7 +16,7 @@ const nonstaker = accounts[5]
 const emptyAccount = accounts[7]
 const distributionAccount = accounts[8]
 
-describe("LidToken", function() {
+describe("LidStaking", function() {
   before(async function() {
     const tokenParams = config.LidToken
     const stakingParams = config.LidStaking
@@ -54,7 +54,6 @@ describe("LidToken", function() {
       await this.lidToken.mint(stakers[3],ether('100000'),{from: owner}),
       await this.lidToken.mint(nonstaker,ether('100000'),{from: owner}),
       await this.lidToken.mint(distributionAccount,ether('130000'),{from: owner}),
-
     ])
 
     await this.lidToken.setIsTransfersActive(true,{from:owner})
