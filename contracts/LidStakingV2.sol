@@ -1,6 +1,19 @@
-import "./LidStaking.sol";
+pragma solidity 0.5.16;
 
-contract LidStakingV2 is LidStaking {
+import "./LidStaking.sol";
+import "./interfaces/ILidCertifiableToken.sol";
+
+contract V2Initializable {
+  bool private initialized;
+
+  modifier v2Initializer() {
+    require(!initialized, "V2 Contract instance has already been initialized");
+    initialized = true;
+    _;
+  }
+}
+
+contract LidStakingV2 is LidStaking, V2Initializable {
 
   struct Checkpoint {
       uint128 fromBlock;
@@ -10,6 +23,14 @@ contract LidStakingV2 is LidStaking {
   mapping(address => Checkpoint[]) stakeValueHistory;
 
   Checkpoint[] totalStakedHistory;
+
+  ILidCertifiableToken internal lidToken;
+
+  function v2Initialize(
+    ILidCertifiableToken _lidToken
+  ) external v2Initializer onlyOwner {
+    lidToken = _lidToken;
+  }
 
   function totalStakedAt(uint _blockNumber) public view returns(uint) {
     // If we haven't initialized history yet
@@ -27,7 +48,7 @@ contract LidStakingV2 is LidStaking {
 
   function stakeValueAt(address _owner, uint _blockNumber) public view returns (uint) {
     // If we haven't initialized history yet
-    if (stakeValueHistory[_owner].length === 0) {
+    if (stakeValueHistory[_owner].length == 0) {
       // Use the existing latest value
       return stakeValue[_owner];
     } else {
@@ -36,7 +57,7 @@ contract LidStakingV2 is LidStaking {
     }
   }
 
-  function unstake(uint _amount) external override whenStakingActive {
+  function unstake(uint _amount) external whenStakingActive {
     require(
       _amount >= 1e18,
       "Must unstake at least one LID."
@@ -46,10 +67,9 @@ contract LidStakingV2 is LidStaking {
       "Cannot unstake more LID than you have staked."
     );
     _removeStake(_amount);
-    super.unstake(_amount);
   }
 
-  function _removeStake(uint _amount) internal virtual {
+  function _removeStake(uint _amount) internal {
     // Update staker's history
     _updateCheckpointValueAtNow(
       stakeValueHistory[msg.sender],
@@ -63,9 +83,28 @@ contract LidStakingV2 is LidStaking {
       totalStaked,
       totalStaked.sub(_amount)
     );
+
+    // Base logic from LidStaking's external unstake function
+    _superRemoveStake(_amount);
   }
 
-  function _addStake(uint _amount) internal override returns (uint tax) {
+  function _superRemoveStake(uint _amount) internal {
+    uint tax = findTaxAmount(_amount, unstakingTaxBP);
+    uint earnings = _amount.sub(tax);
+    if (stakeValue[msg.sender] == _amount) totalStakers = totalStakers.sub(1);
+    totalStaked = totalStaked.sub(_amount);
+    stakeValue[msg.sender] = stakeValue[msg.sender].sub(_amount);
+    uint payout = profitPerShare.mul(_amount).add(tax.mul(DISTRIBUTION_MULTIPLIER));
+    stakerPayouts[msg.sender] = stakerPayouts[msg.sender] - uintToInt(payout);
+    for (uint i=0; i < stakeHandlers.length; i++) {
+        stakeHandlers[i].handleUnstake(msg.sender, _amount, stakeValue[msg.sender]);
+    }
+    _increaseProfitPerShare(tax);
+    require(lidToken.transferFrom(address(this), msg.sender, earnings), "Unstake failed due to failed transfer.");
+    emit OnUnstake(msg.sender, _amount, tax);
+  }
+
+  function _addStake(uint _amount) internal returns (uint tax) {
     // Update staker's history
     _updateCheckpointValueAtNow(
       stakeValueHistory[msg.sender],
@@ -80,7 +119,7 @@ contract LidStakingV2 is LidStaking {
       totalStaked.add(_amount)
     );
 
-    return super._addStake(amount);
+    return super._addStake(_amount);
   }
 
   function _getCheckpointValueAt(Checkpoint[] storage checkpoints, uint _block) view internal returns (uint) {

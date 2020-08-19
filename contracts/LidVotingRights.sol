@@ -1,3 +1,5 @@
+pragma solidity 0.5.16;
+
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/upgrades/contracts/Initializable.sol";
 import "./LidStakingV2.sol";
@@ -16,31 +18,31 @@ contract LidVotingRights is Initializable, ERC20Detailed {
     lidToken = _lidToken;
   }
 
-  function name() public pure returns(string) {
-    return "LID Voting Rights"
+  function name() public view returns (string memory) {
+    return "LID Voting Rights";
   }
 
-  function symbol() public pure returns(string) {
+  function symbol() public view returns (string memory) {
     return "LID-VR";
   }
 
-  function decimals() public pure returns(uint8) {
-    return lidToken.decimals;
+  function decimals() public view returns (uint8) {
+    return lidToken.decimals();
   }
 
-  function balanceOf(address _owner) public view returns(uint) {
-    return lidStaking.stakeValue[_owner];
+  function balanceOf(address _owner) public view returns (uint) {
+    return lidStaking.stakeValue(_owner);
   }
 
-  function totalSupply() public view returns(uint) {
-    return lidStaking.totalStaked;
+  function totalSupply() public view returns (uint) {
+    return lidStaking.totalStaked();
   }
 
   function balanceOfAt(address _owner, uint _blockNumber) public view returns (uint) {
     return lidStaking.stakeValueAt(_owner, _blockNumber);
   }
 
-  function totalSupplyAt(uint _blockNumber) public view returns(uint) {
+  function totalSupplyAt(uint _blockNumber) public view returns (uint) {
     return lidStaking.totalStakedAt(_blockNumber);
   }
 }
