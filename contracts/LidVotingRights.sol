@@ -20,6 +20,11 @@ contract LidVotingRights is Initializable, ERC20Detailed {
     return "LID Voting Rights"
   }
 
+  // TODO: add a security measure to make sure that
+  //       X% of total staked is represented in voting rights,
+  //       else return 0 for everyone. Should this be implemented
+  //       here or within the DAO?
+
   function symbol() public pure returns(string) {
     return "LID-VR";
   }

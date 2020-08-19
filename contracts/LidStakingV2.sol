@@ -11,6 +11,9 @@ contract LidStakingV2 is LidStaking {
 
   Checkpoint[] totalStakedHistory;
 
+  // TODO: require V1 stakers register for V2
+  // TODO: new manual v2 initializer
+
   // TODO: update this history when users stake and unstake
   // Mapping of a staker's address to the block number
   // of when they've crossed the threshold
