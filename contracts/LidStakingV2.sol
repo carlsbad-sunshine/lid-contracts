@@ -11,35 +11,6 @@ contract LidStakingV2 is LidStaking {
 
   Checkpoint[] totalStakedHistory;
 
-  // TODO: require V1 stakers register for V2
-  // TODO: new manual v2 initializer
-
-  // TODO: update this history when users stake and unstake
-  // Mapping of a staker's address to the block number
-  // of when they've crossed the threshold
-  mapping(address => uint) stakerThresoldMet;
-
-  // TODO: initialize these 2 values + expose onlyowner setters
-  // The minimum number of staked tokens required to
-  // qualify for voting
-  uint minimumStakeThreshold;
-
-  // The timeout period a staker has to wait until
-  // they qualify to vote
-  uint stakerTimeout;
-
-  // TODO:
-  function totalStakedAtWithMin(uint _blockNumber) public view returns(uint) {
-    uint staked = totalStakedAt(_blockNumber);
-
-    // If the amount staked meets the threshold
-    if (staked > minimumStakeThreshold) {
-      // Verify that 
-    } else {
-      return 0;
-    }
-  }
-
   function totalStakedAt(uint _blockNumber) public view returns(uint) {
     // If we haven't initialized history yet
     if (totalStakedHistory.length == 0) {
@@ -66,11 +37,6 @@ contract LidStakingV2 is LidStaking {
   }
 
   function unstake(uint _amount) external override whenStakingActive {
-    _removeStake(_amount);
-    super.unstake(_amount);
-  }
-
-  function _removeStake(uint _amount) internal virtual {
     require(
       _amount >= 1e18,
       "Must unstake at least one LID."
@@ -79,7 +45,11 @@ contract LidStakingV2 is LidStaking {
       stakeValue[msg.sender] >= _amount,
       "Cannot unstake more LID than you have staked."
     );
+    _removeStake(_amount);
+    super.unstake(_amount);
+  }
 
+  function _removeStake(uint _amount) internal virtual {
     // Update staker's history
     _updateCheckpointValueAtNow(
       stakeValueHistory[msg.sender],
@@ -96,7 +66,6 @@ contract LidStakingV2 is LidStaking {
   }
 
   function _addStake(uint _amount) internal override returns (uint tax) {
-
     // Update staker's history
     _updateCheckpointValueAtNow(
       stakeValueHistory[msg.sender],
