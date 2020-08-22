@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "mocha --exit --recursive --timeout 5000 ./test/LidStakingV2.test.js",
+    "test": "mocha --exit --recursive --timeout 5000",
     "migrate-live": "truffle migrate --network live --skip-dry-run"
   },
   "dependencies": {
