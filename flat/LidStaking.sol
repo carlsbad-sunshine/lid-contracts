@@ -216,10 +216,6 @@ contract Initializable {
   uint256[50] private ______gap;
 }
 
-// File: node_modules\@openzeppelin\contracts-ethereum-package\contracts\GSN\Context.sol
-
-pragma solidity ^0.5.0;
-
 
 /*
  * @dev Provides information about the current execution context, including the
@@ -479,22 +475,26 @@ contract LidStaking is Initializable, Ownable {
     function unstake(uint amount) external whenStakingActive {
         require(amount >= 1e18, "Must unstake at least one LID.");
         require(stakeValue[msg.sender] >= amount, "Cannot unstake more LID than you have staked.");
-        uint tax = findTaxAmount(amount, unstakingTaxBP);
-        uint earnings = amount.sub(tax);
+        //must withdraw all dividends, to prevent overflows
+        withdraw(dividendsOf(msg.sender));
         if (stakeValue[msg.sender] == amount) totalStakers = totalStakers.sub(1);
         totalStaked = totalStaked.sub(amount);
         stakeValue[msg.sender] = stakeValue[msg.sender].sub(amount);
-        uint payout = profitPerShare.mul(amount).add(tax.mul(DISTRIBUTION_MULTIPLIER));
-        stakerPayouts[msg.sender] = stakerPayouts[msg.sender] - uintToInt(payout);
+
+        uint tax = findTaxAmount(amount, unstakingTaxBP);
+        uint earnings = amount.sub(tax);
+        _increaseProfitPerShare(tax);
+        stakerPayouts[msg.sender] = uintToInt(profitPerShare.mul(stakeValue[msg.sender]));
+
         for (uint i=0; i < stakeHandlers.length; i++) {
             stakeHandlers[i].handleUnstake(msg.sender, amount, stakeValue[msg.sender]);
         }
-        _increaseProfitPerShare(tax);
+
         require(lidToken.transferFrom(address(this), msg.sender, earnings), "Unstake failed due to failed transfer.");
         emit OnUnstake(msg.sender, amount, tax);
     }
 
-    function withdraw(uint amount) external whenStakingActive {
+    function withdraw(uint amount) public whenStakingActive {
         require(dividendsOf(msg.sender) >= amount, "Cannot withdraw more dividends than you have earned.");
         stakerPayouts[msg.sender] = stakerPayouts[msg.sender] + uintToInt(amount.mul(DISTRIBUTION_MULTIPLIER));
         lidToken.transfer(msg.sender, amount);
@@ -527,7 +527,9 @@ contract LidStaking is Initializable, Ownable {
     }
 
     function dividendsOf(address staker) public view returns (uint) {
-        return uint(uintToInt(profitPerShare.mul(stakeValue[staker])) - stakerPayouts[staker])
+        int divPayout = uintToInt(profitPerShare.mul(stakeValue[staker]));
+        require(divPayout >= stakerPayouts[staker], "dividend calc overflow");
+        return uint(divPayout - stakerPayouts[staker])
             .div(DISTRIBUTION_MULTIPLIER);
     }
 
