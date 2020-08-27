@@ -47,6 +47,8 @@ describe("LidPresale", function() {
     await this.lidStaking.initialize(
       stakingParams.stakingTaxBP,
       stakingParams.unstakingTaxBP,
+      stakingParams.registrationFeeWithReferrer,
+      stakingParams.registrationFeeWithoutReferrer,
       owner,
       this.lidToken.address
     )
