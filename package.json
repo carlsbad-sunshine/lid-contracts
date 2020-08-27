@@ -1,4 +1,6 @@
 {
+  "name": "lid-contracts",
+  "version": "0.0.1-alpha.2",
   "scripts": {
     "test": "mocha --exit --recursive --timeout 5000",
     "migrate-live": "truffle migrate --network live --skip-dry-run"

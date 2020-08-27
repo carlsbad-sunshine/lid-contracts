@@ -7,6 +7,7 @@ const config = require("../config")
 const LidToken = contract.fromArtifact("LidToken")
 const LidStaking = contract.fromArtifact("LidStaking")
 const LidStakingV2 = contract.fromArtifact("LidStakingV2")
+const LidVotingRights = contract.fromArtifact("LidVotingRights")
 const LidCertifiedPresale = contract.fromArtifact("LidCertifiedPresale")
 const LidDaoFund = contract.fromArtifact("LidDaoLock")
 const AdminUpgradeabilityProxyABI = require("@openzeppelin/upgrades/build/contracts/AdminUpgradeabilityProxy.json")
@@ -185,6 +186,13 @@ describe("LidStakingV2", function() {
 
       it("V2 Stake History Is Correct After Stake & Unstake", async function() {
 
+        const lidVotingRights = await LidVotingRights.new()
+
+        await lidVotingRights.initialize(
+          this.lidStaking.address,
+          this.lidToken.address
+        )
+
         const exec = async (method, addOrSub, staker, eth) => {
           const stakeInput = ether(eth)
           const tax = await this.lidStaking.stakingTaxBP()
@@ -210,6 +218,12 @@ describe("LidStakingV2", function() {
             value: totalStaked,
             block: tx.receipt.blockNumber
           })
+
+          expect(await lidVotingRights.totalSupply())
+            .to.deep.equal(await this.lidStaking.totalStaked())
+
+          expect(await lidVotingRights.balanceOf(staker))
+            .to.deep.equal(await this.lidStaking.stakeValue(staker))
         }
 
         const stake = async (staker, eth) => {
@@ -219,6 +233,9 @@ describe("LidStakingV2", function() {
         const unstake = async (staker, eth) => {
           await exec("unstake", "sub", staker, eth)
         }
+
+        expect(await lidVotingRights.decimals())
+          .to.deep.equal(await this.lidToken.decimals())
 
         for (const staker of stakers) {
           const rand = () => Math.floor(1000 + Math.random() * 100).toString()
@@ -241,6 +258,9 @@ describe("LidStakingV2", function() {
           expect(latestResult.toString())
             .to.equal(staked[staker].toString())
 
+          expect(await lidVotingRights.balanceOfAt(staker, await time.latestBlock()))
+            .to.deep.equal(latestResult)
+
           // Verify all stake history
           for (const checkpoint of stakeHistory) {
             const { value, block } = checkpoint
@@ -248,6 +268,9 @@ describe("LidStakingV2", function() {
 
             expect(result.toString())
               .to.equal(value.toString())
+
+            expect(await lidVotingRights.balanceOfAt(staker, block))
+              .to.deep.equal(result)
           }
         }
 
@@ -258,6 +281,9 @@ describe("LidStakingV2", function() {
 
           expect(result.toString())
             .to.equal(value.toString())
+
+          expect(await lidVotingRights.totalSupplyAt(block))
+            .to.deep.equal(result)
         }
       })
     })
