@@ -6,7 +6,7 @@
   "dependencies": {
     "@openzeppelin/cli": "^2.8.2",
     "@openzeppelin/contracts-ethereum-package": "^2.5.0",
-    "@truffle/hdwallet-provider": "^1.0.36",
+    "@truffle/hdwallet-provider": "^1.7.0",
     "@uniswap/v2-core": "^1.0.1",
     "core-util-is": "^1.0.2"
   },
